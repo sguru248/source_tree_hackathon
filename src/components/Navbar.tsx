@@ -6,6 +6,7 @@ import { Leaf, LayoutDashboard, ScanLine, Search, Trophy, Coins, Flame } from "l
 import ConnectWallet from "./ConnectWallet";
 import { useState, useEffect } from "react";
 import { fetchParticipantStats } from "@/lib/incentives";
+import { getEthereumProvider } from "@/lib/ethereum";
 
 const navLinks = [
   { href: "/", label: "Home", icon: Leaf },
@@ -23,9 +24,10 @@ export default function Navbar() {
   // Load incentive stats for connected wallet
   useEffect(() => {
     async function loadStats() {
-      if (typeof window === "undefined" || !window.ethereum) return;
+      const ethereum = getEthereumProvider();
+      if (!ethereum) return;
       try {
-        const accounts: string[] = await window.ethereum.request({ method: "eth_accounts" });
+        const accounts: string[] = await ethereum.request({ method: "eth_accounts" });
         if (accounts[0]) {
           const stats = await fetchParticipantStats(accounts[0]);
           if (stats) {
@@ -38,10 +40,11 @@ export default function Navbar() {
     loadStats();
 
     // Re-check on account change
-    if (typeof window !== "undefined" && window.ethereum) {
+    const ethereum = getEthereumProvider();
+    if (ethereum) {
       const handler = () => loadStats();
-      window.ethereum.on("accountsChanged", handler);
-      return () => window.ethereum?.removeListener("accountsChanged", handler);
+      ethereum.on("accountsChanged", handler);
+      return () => ethereum?.removeListener("accountsChanged", handler);
     }
   }, []);
 

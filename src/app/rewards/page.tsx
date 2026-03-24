@@ -15,6 +15,7 @@ import TokenBalance from "@/components/TokenBalance";
 import BadgeGrid from "@/components/BadgeGrid";
 import ActivityFeed from "@/components/ActivityFeed";
 import StatsCards from "@/components/StatsCards";
+import { getEthereumProvider } from "@/lib/ethereum";
 
 export default function RewardsPage() {
   const [account, setAccount] = useState<string | null>(null);
@@ -29,12 +30,13 @@ export default function RewardsPage() {
 
   useEffect(() => {
     async function init() {
-      if (typeof window === "undefined" || !window.ethereum) {
+      const ethereum = getEthereumProvider();
+      if (!ethereum) {
         setLoading(false);
         return;
       }
       try {
-        const accounts: string[] = await window.ethereum.request({ method: "eth_accounts" });
+        const accounts: string[] = await ethereum.request({ method: "eth_accounts" });
         if (accounts[0]) {
           setAccount(accounts[0]);
           const p = await checkParticipant(accounts[0]);

@@ -3,6 +3,7 @@ import {
   ParticipantStats, RewardEvent, LeaderboardEntry, Badge,
   BADGE_DEFINITIONS, BadgeId, getStreakMultiplier,
 } from "@/types";
+import { getEthereumProvider } from "@/lib/ethereum";
 
 const INCENTIVES_ABI = [
   "function getStats(address _participant) external view returns (uint256 totalSTR, uint256 reputationScore, uint256 streakDays, uint256 lastActiveDay, uint256 checkpointCount, uint256 verificationCount, uint256 qualityCheckpoints, uint256 totalCheckpoints, uint256 badgesBitmap, uint256 stakedSTR, uint256 badgeCount)",
@@ -29,10 +30,11 @@ function getReadContract(): ethers.Contract {
 }
 
 export async function getWriteIncentivesContract(): Promise<ethers.Contract> {
-  if (typeof window === "undefined" || !window.ethereum) {
+  const ethereum = getEthereumProvider();
+  if (!ethereum) {
     throw new Error("MetaMask not found");
   }
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const provider = new ethers.providers.Web3Provider(ethereum);
   const signer = provider.getSigner();
   return new ethers.Contract(INCENTIVES_ADDRESS, INCENTIVES_ABI, signer);
 }

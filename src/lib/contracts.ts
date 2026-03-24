@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { Product, Checkpoint, ProductStatus, Role, Project, Participant } from "@/types";
+import { getEthereumProvider } from "@/lib/ethereum";
 
 const CONTRACT_ABI = [
   // Registration
@@ -58,10 +59,11 @@ export function getReadContract(): ethers.Contract {
 }
 
 export async function getWriteContract(): Promise<ethers.Contract> {
-  if (typeof window === "undefined" || !window.ethereum) {
+  const ethereum = getEthereumProvider();
+  if (!ethereum) {
     throw new Error("MetaMask not found");
   }
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const provider = new ethers.providers.Web3Provider(ethereum);
   const signer = provider.getSigner();
   return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 }

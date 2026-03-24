@@ -30,6 +30,7 @@ import StatsCards from "@/components/StatsCards";
 import ActivityFeed from "@/components/ActivityFeed";
 import StreakCounter from "@/components/StreakCounter";
 import ReputationBadge from "@/components/ReputationBadge";
+import { getEthereumProvider } from "@/lib/ethereum";
 import Link from "next/link";
 
 // ─── Types ───
@@ -254,14 +255,15 @@ export default function DashboardPage() {
   }
 
   async function connectWallet() {
-    if (!window.ethereum) return;
+    const ethereum = getEthereumProvider();
+    if (!ethereum) return;
     try {
       // Request permissions — this forces MetaMask to show the account picker
-      await window.ethereum.request({
+      await ethereum.request({
         method: "wallet_requestPermissions",
         params: [{ eth_accounts: {} }],
       });
-      const accounts: string[] = await window.ethereum.request({ method: "eth_accounts" });
+      const accounts: string[] = await ethereum.request({ method: "eth_accounts" });
       if (accounts[0]) {
         await loadAccount(accounts[0]);
       }
@@ -271,9 +273,10 @@ export default function DashboardPage() {
 
   // Auto-connect on page load if already permitted (no popup)
   async function autoConnect() {
-    if (!window.ethereum) return;
+    const ethereum = getEthereumProvider();
+    if (!ethereum) return;
     try {
-      const accounts: string[] = await window.ethereum.request({ method: "eth_accounts" });
+      const accounts: string[] = await ethereum.request({ method: "eth_accounts" });
       if (accounts[0]) {
         await loadAccount(accounts[0]);
       }
@@ -287,7 +290,8 @@ export default function DashboardPage() {
 
   // Listen for MetaMask account/chain changes
   useEffect(() => {
-    if (demoMode || !window.ethereum) return;
+    const ethereum = getEthereumProvider();
+    if (demoMode || !ethereum) return;
 
     function handleAccountsChanged(accounts: string[]) {
       resetState();
@@ -301,12 +305,12 @@ export default function DashboardPage() {
       autoConnect();
     }
 
-    window.ethereum.on("accountsChanged", handleAccountsChanged);
-    window.ethereum.on("chainChanged", handleChainChanged);
+    ethereum.on("accountsChanged", handleAccountsChanged);
+    ethereum.on("chainChanged", handleChainChanged);
 
     return () => {
-      window.ethereum?.removeListener("accountsChanged", handleAccountsChanged);
-      window.ethereum?.removeListener("chainChanged", handleChainChanged);
+      ethereum?.removeListener("accountsChanged", handleAccountsChanged);
+      ethereum?.removeListener("chainChanged", handleChainChanged);
     };
   }, [demoMode]);
 

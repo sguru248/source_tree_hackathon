@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { Wallet, LogOut } from "lucide-react";
+import { getEthereumProvider } from "@/lib/ethereum";
 
 export default function ConnectWallet() {
   const [account, setAccount] = useState<string | null>(null);
@@ -10,20 +11,22 @@ export default function ConnectWallet() {
 
   useEffect(() => {
     checkConnection();
-    if (window.ethereum) {
-      window.ethereum.on("accountsChanged", (accounts: string[]) => {
+    const ethereum = getEthereumProvider();
+    if (ethereum) {
+      ethereum.on("accountsChanged", (accounts: string[]) => {
         setAccount(accounts[0] || null);
       });
-      window.ethereum.on("chainChanged", (id: string) => {
+      ethereum.on("chainChanged", (id: string) => {
         setChainId(parseInt(id, 16));
       });
     }
   }, []);
 
   async function checkConnection() {
-    if (!window.ethereum) return;
+    const ethereum = getEthereumProvider();
+    if (!ethereum) return;
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const provider = new ethers.providers.Web3Provider(ethereum);
       const accounts = await provider.listAccounts();
       if (accounts.length > 0) {
         setAccount(accounts[0]);
@@ -34,12 +37,13 @@ export default function ConnectWallet() {
   }
 
   async function connect() {
-    if (!window.ethereum) {
+    const ethereum = getEthereumProvider();
+    if (!ethereum) {
       window.open("https://metamask.io/download/", "_blank");
       return;
     }
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const provider = new ethers.providers.Web3Provider(ethereum);
       const accounts = await provider.send("eth_requestAccounts", []);
       setAccount(accounts[0]);
       const network = await provider.getNetwork();
@@ -47,7 +51,7 @@ export default function ConnectWallet() {
 
       if (network.chainId !== 296) {
         try {
-          await window.ethereum.request({
+          await ethereum.request({
             method: "wallet_addEthereumChain",
             params: [{
               chainId: "0x128",
