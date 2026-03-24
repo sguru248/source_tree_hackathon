@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# hardhat
+/artifacts
+/cache
+/typechain-types
+
+# keep .env.example
+!.env.example
+
+# Internal working files
+CLAUDE.md
+IMPLEMENTATION_PLAN.md
+app_summary_v1.txt
